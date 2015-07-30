@@ -19,7 +19,15 @@ function callbacks.receive(event)
 		if g ~= "N" then tanks[b].kills = tonumber(g) end
 		if h ~= "N" then tanks[b].deaths = tonumber(h) end
 	elseif a == "p" then--projectile info
-
+		local newP = {}
+		newP.user = b
+		newP.time = 0
+		newP.xvel = math.cos(tanks[b].rot) * projectileSpeed
+		newP.yvel = math.sin(tanks[b].rot) * projectileSpeed
+		newP.xStart = tanks[b].x
+		newP.yStart = tanks[b].y
+		pCount = pCount + 1
+		projectiles[pCount] = newP
 	elseif a == "c" then--chat
 		chatToBeSent[#chatToBeSent+1]={b, c:gsub("%s", "_")}
 	elseif a == "D" then--disconnect

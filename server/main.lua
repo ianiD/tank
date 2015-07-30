@@ -2,7 +2,8 @@ require "enet"
 local callbacks = require "callbacks"
 
 math.randomseed(os.time())
-tanks, count = {}, 0
+tanks = {}
+projectiles, projectileSpeed, pCount = {}, 1000, 0
 chatToBeSent = {}
 DToBeSent = {}
 CToBeSent = {}
@@ -24,11 +25,18 @@ function love.update(dt)
 		end
 		event = host:service()		--are there more events? Handle them too
 	end
+	for _, p in pairs(projectiles) do
+		p.time = p.time + dt
+		if math.abs(p.xStart + p.xvel * p.time) + math.abs(p.yStart + p.yvel * p.time) > 1000 then
+			p = nil
+		end
+	end
 	if love.timer.getTime() - last > tbu then	--send data to clients every tbu seconds
 		sendData()
 		last = love.timer.getTime()
 	end
-	for _, t in pairs(tanks) do if t.shouldDie then tanks[_] = nil; collectgarbage() end end
+	for _, t in pairs(tanks) do if t.shouldDie then tanks[_] = nil end end
+	collectgarbage()
 end
 
 function love.draw()
@@ -59,7 +67,9 @@ function sendData()
 	end
 
 	--send projectile data
-
+	for _, p in pairs(projectiles) do
+		host:broadcast("p "..p.user.." ".._.." "..p.time.." "..p.xvel.." "..p.yvel.." "..p.xStart.." "..p.yStart.." N N")
+	end
 
 	--send chat data
 	for i = 1, #chatToBeSent do

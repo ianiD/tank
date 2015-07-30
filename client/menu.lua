@@ -6,10 +6,12 @@ function menu.load()
 	menu.font = love.graphics.newFont(30)
 end
 
-function menu.enter()
+function menu.enter(data)
+	data = data or {}
 	menu.address = "localhost"
 	menu.nick = "Player"
 	menu.selected = "nick"
+	menu.fromLast = data[1] or ""
 	love.keyboard.setTextInput(true)
     love.keyboard.setKeyRepeat(true)
 end
@@ -33,6 +35,8 @@ function menu.draw()
 	love.graphics.print("Enter nickname:", 10, 80)
 	love.graphics.print(menu.nick..((love.timer.getTime()*2%2<1 and menu.selected=="nick") and "|" or ""), 10, 110)
 	love.graphics.print("Press enter to join", 10, 150)
+
+	love.graphics.print(menu.fromLast, 50, 200)
 end
 
 function menu.textinput(t)
