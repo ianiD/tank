@@ -5,11 +5,20 @@ math.randomseed(os.time())
 tanks = {}
 projectiles, projectileSpeed, pCount = {}, 1000, 0
 chatToBeSent = {}
+killsToBeSent = {}
 DToBeSent = {}
 CToBeSent = {}
 local ups = 60
 local last, host
 local tbu = 1 / ups
+
+function bytesum(a)
+	local s = 0
+	for i = 1, #a do
+	    s = s + a:byte(i)
+	end
+	return s
+end
 
 function love.load()
 	host = enet.host_create("*:9149")
@@ -27,8 +36,23 @@ function love.update(dt)
 	end
 	for _, p in pairs(projectiles) do
 		p.time = p.time + dt
-		if math.abs(p.xStart + p.xvel * p.time) + math.abs(p.yStart + p.yvel * p.time) > 1000 then
-			p = nil
+		if p.time > 5 then
+			projectiles[_] = nil
+		end
+	end
+	for _, t in pairs(tanks) do
+		for _, p in pairs(projectiles) do
+			if (t.x - (p.xStart + p.xvel * p.time))*(t.x - (p.xStart + p.xvel * p.time)) + (t.y - (p.yStart + p.yvel * p.time))*(t.y - (p.yStart + p.yvel * p.time)) < 400 then
+				if p.user ~= t.nick then
+					projectiles[_] = nil
+					table.insert(killsToBeSent, {t.nick, p.user, _})
+					t.deaths = t.deaths + 1
+					tanks[p.user].kills = tanks[p.user].kills + 1
+					math.randomseed(bytesum(t.nick))
+					t.x = math.random() * 600 + 100
+					t.y = math.random() * 400 + 100
+				end
+			end
 		end
 	end
 	if love.timer.getTime() - last > tbu then	--send data to clients every tbu seconds
@@ -70,6 +94,12 @@ function sendData()
 	for _, p in pairs(projectiles) do
 		host:broadcast("p "..p.user.." ".._.." "..p.time.." "..p.xvel.." "..p.yvel.." "..p.xStart.." "..p.yStart.." N N")
 	end
+
+	--send kill data
+	for i = 1, #killsToBeSent do
+		host:broadcast("k "..killsToBeSent[i][1].." "..killsToBeSent[i][2].." "..killsToBeSent[i][3].." N N N N N N")
+	end
+	killsToBeSent = {}
 
 	--send chat data
 	for i = 1, #chatToBeSent do

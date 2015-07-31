@@ -1,23 +1,13 @@
 local callbacks = {}
 callbacks.nickOf = {}
 
-local function bytesum(a)
-	local s = 0
-	for i = 1, #a do
-	    s = s + a:byte(i)
-	end
-	return s
-end
-
 function callbacks.receive(event)
 	local a, b, c, d, e, g, h, i, j = event.data:match("(.+) (.+) (.+) (.+) (.+) (.+) (.+) (.+) (.+) (.+)")
 	if a == "t" then	--tank info
 		if c ~= "N" then tanks[b].x = tonumber(c) end
 		if d ~= "N" then tanks[b].y = tonumber(d) end
 		if e ~= "N" then tanks[b].rot = tonumber(e) end
-		if f ~= "N" then tanks[b].dp = tonumber(f) end
-		if g ~= "N" then tanks[b].kills = tonumber(g) end
-		if h ~= "N" then tanks[b].deaths = tonumber(h) end
+		if f ~= "N" then tanks[b].deltap = tonumber(f) end
 	elseif a == "p" then--projectile info
 		local newP = {}
 		newP.user = b
@@ -35,7 +25,7 @@ function callbacks.receive(event)
 		DToBeSent[#DToBeSent+1]= b
 		chatToBeSent[#chatToBeSent+1] = {"Server", b.." Disconnected"}
 	elseif a == "C" then--connect
-		tanks[b] = {nick = b, x = c, y = d, rot = e, kills = 0, deaths = 1337, dp = 0, shouldDie = false}
+		tanks[b] = {nick = b, x = c, y = d, rot = e, kills = 0, deaths = 0, deltap = 0, shouldDie = false}
 
 		math.randomseed(bytesum(b))
 		math.random(); math.random(); math.random()

@@ -52,6 +52,7 @@ local function generateTank(nick)
 end
 
 function play.enter(data)
+	play.chat = {}
 	table.insert(play.chat, "Chat v1")
 	table.insert(play.chat, "")
 	play.myTank = generateTank(data[2])
@@ -92,6 +93,7 @@ function play.update(dt)
 				if g ~= "N" then play.tanks[b].kills = tonumber(g) end
 				if h ~= "N" then play.tanks[b].deaths = tonumber(h) end
 			elseif 	a == "p" then	--projectile info
+				print(a, b, c, d, e, f, g, h, i, j)
 				play.projectiles[c] = play.projectiles[c] or {}
 				if b ~= "N" then play.projectiles[c].user = b end
 				if d ~= "N" then play.projectiles[c].time = d end
@@ -101,6 +103,12 @@ function play.update(dt)
 				if h ~= "N" then play.projectiles[c].yStart = h end
 			elseif 	a == "c" then	--chat
 				play.chat[#play.chat+1]="<"..b.."> "..c:gsub("_", " ")
+			elseif 	a == "k" then	--kill
+				play.chat[#play.chat+1]=c.." killed "..b
+				play.projectiles[d] = nil
+				if b == play.myTank.nick then
+
+				end
 			elseif 	a == "D" then	--disconnect
 				play.tanks[b] = nil
 				collectgarbage()
@@ -125,12 +133,24 @@ function play.update(dt)
 	play.handleMovement(play.myTank, left, right, dt)
 	for _, t in pairs(play.tanks) do
 		play.handleMovement(t, 0, 0, dt)
+		for _, p in pairs(play.projectiles) do
+			if (t.x - (p.xStart + p.xvel * p.time))*(t.x - (p.xStart + p.xvel * p.time)) + (t.y - (p.yStart + p.yvel * p.time))*(t.y - (p.yStart + p.yvel * p.time)) < 450 then
+				if p.user ~= t.nick then
+					play.projectiles[_] = nil
+					if t.nick == play.myTank.nick then
+						math.randomseed(bytesum(t.nick))
+						play.myTank.x = math.random() * 600 + 100
+						play.myTank.y = math.random() * 400 + 100
+					end
+				end
+			end
+		end
 	end
 
 	play.handleProjectiles()
 
 	if love.timer.getTime() - last > tbu and play.myTank.x then	--send data to clients every tbu seconds
-		play.net.server:send("t "..play.myTank.nick .." ".. play.myTank.x .." ".. play.myTank.y .." ".. play.myTank.rot .." "..play.myTank.dp.." "..play.myTank.kills.." "..play.myTank.deaths.." N N")
+		play.net.server:send("t "..play.myTank.nick .." ".. play.myTank.x .." ".. play.myTank.y .." ".. play.myTank.rot .." "..play.myTank.dp.." N N N N")
 		last = love.timer.getTime()
 	end
 end
@@ -159,6 +179,7 @@ function drawProjectiles()
 		love.graphics.setColor(play.tanks[p.user].color)
 		love.graphics.circle("fill", p.xStart + p.time * p.xvel, p.yStart + p.time * p.yvel, 3, 10)
 	end
+	love.graphics.setColor(255, 255, 255)
 end
 
 function drawGUI()
@@ -281,7 +302,6 @@ end
 
 function play.handleProjectiles()
 	if love.keyboard.isDown(" ") and (love.timer.getTime() - play.lastFired) > play.fireRate then
-		print("PEW")
 		play.lastFired = love.timer.getTime()
 		play.net.server:send("p "..play.myTank.nick.." N N N N N N N N")
 	end
