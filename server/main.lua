@@ -92,7 +92,9 @@ function sendData()
 
 	--send projectile data
 	for _, p in pairs(projectiles) do
-		host:broadcast("p "..p.user.." ".._.." "..p.time.." "..p.xvel.." "..p.yvel.." "..p.xStart.." "..p.yStart.." N N")
+		if p.time < 5 then
+			host:broadcast("p "..p.user.." ".._.." "..p.time.." "..p.xvel.." "..p.yvel.." "..p.xStart.." "..p.yStart.." N N")
+		end
 	end
 
 	--send kill data

@@ -111,6 +111,9 @@ function play.update(dt)
 				end
 			elseif 	a == "D" then	--disconnect
 				play.tanks[b] = nil
+				for _, p in pairs(play.projectiles) do
+					if p.user == b then p = nil end
+				end
 				collectgarbage()
 			elseif	a == "C" then	--connect
 				play.tanks[b] = {nick = b, x = tonumber(c), y = tonumber(d), rot = tonumber(e), dp = 0, kills = 0, deaths = 0}
@@ -176,8 +179,12 @@ end
 
 function drawProjectiles()
 	for _, p in pairs(play.projectiles) do
-		love.graphics.setColor(play.tanks[p.user].color)
-		love.graphics.circle("fill", p.xStart + p.time * p.xvel, p.yStart + p.time * p.yvel, 3, 10)
+		if play.tanks[p.user] then
+			love.graphics.setColor(play.tanks[p.user].color)
+			love.graphics.circle("fill", p.xStart + p.time * p.xvel, p.yStart + p.time * p.yvel, 3, 10)
+		else
+			play.projectiles[_] = nil
+		end
 	end
 	love.graphics.setColor(255, 255, 255)
 end
